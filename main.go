@@ -1,8 +1,11 @@
 package main
 
 import (
+	//"fmt"
 	"fmt"
-	"os"	
+	"log"
+	"net/http"
+	"os"
 )
 
 // para eeste proyecto vamos a crear una página y su contenido,
@@ -31,9 +34,18 @@ func loadPage(title string) (*Page, error){
 	return &Page{Title: title, Body: body}, nil
 }
 
+func handler (w http.ResponseWriter, r *http.Request){
+	fmt.Fprintf(w, "Hola %s!", "mundo")
+}
+
 func main(){
-	p1 := &Page{Title: "TestPage", Body: []byte("This is a sample Page.")}
+	/* p1 := &Page{Title: "TestPage", Body: []byte("This is a sample Page.")}
 	p1.save()
 	p2, _ := loadPage("TestPage")
-	fmt.Println(string(p2.Body)) // si no lo casteo a string, me imprime el slice de bytes.
+	fmt.Println(string(p2.Body)) // si no lo casteo a string, me imprime el slice de bytes. */
+
+	http.HandleFunc("/", handler)
+
+	log.Fatal(http.ListenAndServe(":3000", nil))
+	
 }
