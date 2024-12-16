@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 )
 
 // para eeste proyecto vamos a crear una página y su contenido,
@@ -34,18 +35,44 @@ func loadPage(title string) (*Page, error){
 	return &Page{Title: title, Body: body}, nil
 }
 
-func handler (w http.ResponseWriter, r *http.Request){
+// crearemos un handler para mostrar el contenido de la página.
+func handler (w http.ResponseWriter){
 	fmt.Fprintf(w, "Hola %s!", "mundo")
 }
 
+// crearemos un handler para mostrar el contenido de la página.
+// vamos a cambiar el renderizado de la página a un template.
 func viewHandler(w http.ResponseWriter, r *http.Request){
 	title := r.URL.Path[len("/view/"):] // obtenemos el título de la página a cargar.
 	p, err := loadPage(title) // cargamos la página.
 	if err != nil {
-		http.Redirect(w, r, "/edit/"+title, http.StatusFound) // si hay un error, redireccionamos al editor de la página.
+		p = &Page{Title: title} // si hay un error, creamos una nueva página con el título.
+	}
+
+	renderTemplate(w, "view", p)
+}
+
+// crearemos un handler para editar el contenido de la página.
+// endpoint: localhost:3000/edit/TestPage
+func editHandler(w http.ResponseWriter, r *http.Request){
+	title := r.URL.Path[len("/edit/"):] // obtenemos el título de la página a editar.
+	p, err := loadPage(title) // cargamos la página.
+	if err != nil {
+		p = &Page{Title: title} // si hay un error, creamos una nueva página con el título.
+	}
+	
+	renderTemplate(w, "edit", p)
+}
+
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
+	t, err := template.ParseFiles(tmpl + ".html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body) // si no hay error, mostramos el contenido de la página.
+
+	// ejecutamos el template.
+	t.Execute(w, p)
 }
 
 func main(){
@@ -57,6 +84,7 @@ func main(){
 	//http.HandleFunc("/", handler)
 
 	http.HandleFunc("/view/", viewHandler)
+	http.HandleFunc("/edit/", editHandler)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 	
