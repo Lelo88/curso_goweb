@@ -72,7 +72,26 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
 	}
 
 	// ejecutamos el template.
-	t.Execute(w, p)
+	err = t.Execute(w, p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func saveHandler(w http.ResponseWriter, r *http.Request){
+	title := r.URL.Path[len("/save/"):] // obtenemos el título de la página a editar.
+	
+	body := r.FormValue("body") // obtenemos el contenido de la página.
+	
+	p := &Page{Title: title, Body: []byte(body)} // creamos la página con el título y el contenido
+	
+	err := p.save() // guardamos la página.
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	http.Redirect(w, r, "/view/" + title, http.StatusFound) // redirigimos al usuario a la página.
 }
 
 func main(){
@@ -85,6 +104,7 @@ func main(){
 
 	http.HandleFunc("/view/", viewHandler)
 	http.HandleFunc("/edit/", editHandler)
+	http.HandleFunc("/save/", saveHandler)
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 	
