@@ -64,15 +64,11 @@ func editHandler(w http.ResponseWriter, r *http.Request){
 	renderTemplate(w, "edit", p)
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
-	t, err := template.ParseFiles(tmpl + ".html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
 
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
+	err:= templates.ExecuteTemplate(w, tmpl + ".html", p)
 	// ejecutamos el template.
-	err = t.Execute(w, p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
