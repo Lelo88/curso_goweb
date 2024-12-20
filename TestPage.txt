@@ -1,2 +1,4 @@
-                This is a sample Page.
+                                This is a sample Page.
 Ahora vamos a ver si funciona el guardado            
+            
+Guardamo ahora con el nuevo renderizado
